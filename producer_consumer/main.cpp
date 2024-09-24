@@ -14,7 +14,7 @@ public:
         else wcv.notify_one();
     }
 
-    Logger() {
+    Logger(const string& fileName) : logFile(fileName, ios::out | ios::app) {
         readerQ.reserve(maxSize);
         writerQ.reserve(maxSize);
         reader = thread(&Logger::readLogs, this);
@@ -35,7 +35,7 @@ private:
 
     // logger infra
     const int maxSize = 10;
-    string logFile = "debug.log";
+    ofstream logFile;
     vector<string> readerQ;
     vector<string> writerQ;
     atomic_bool stopLogger = false;
@@ -50,7 +50,7 @@ private:
             lock.unlock();
             wcv.notify_one();
             for(const string& msg: readerQ) {
-                cout<<msg<<endl;
+                logFile<<msg<<endl;
             }
             readerQ.clear();
         }
@@ -69,7 +69,7 @@ void doWork(Logger& logger, int id) {
 }
 
 int main() {
-    Logger logger;
+    Logger logger("debug.log");
     vector<thread> threads;
     int writers = 5;
     for(int i = 0; i < writers; i++) {
